@@ -27,7 +27,7 @@ const sendStellarPayment = async (recipient, amount, asset) => {
     const sourceAccount = await server.loadAccount(sourceKeypair.publicKey());
 
     // Define asset (USDC, USDT, XLM, etc.)
-    const paymentAsset = asset === "XLM" ? StellarSdk.Asset.native() : new StellarSdk.Asset(asset, recipient);
+    const paymentAsset = asset === "XLM" ? StellarSdk.Asset.native() : new StellarSdk.Asset(asset, process.env.STELLAR_ASSET_ISSUER);
 
     // Build transaction
     const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
@@ -51,6 +51,11 @@ const sendStellarPayment = async (recipient, amount, asset) => {
     return server.submitTransaction(transaction);
 };
 
+// Health Check Endpoint
+app.get("/health", (req, res) => {
+    res.send("OK");
+});
+
 // Payment API Endpoint
 app.post("/pay", async (req, res) => {
     try {
@@ -67,7 +72,7 @@ app.post("/pay", async (req, res) => {
 
         // EVM Transaction Handling
         const provider = getProvider(chain);
-        const wallet = new ethers.Wallet("your_private_key_here", provider);
+        const wallet = new ethers.Wallet(process.env.EVM_PRIVATE_KEY, provider);
 
         const stablecoinContract = new ethers.Contract(
             stablecoinAddress,
@@ -84,4 +89,5 @@ app.post("/pay", async (req, res) => {
     }
 });
 
-app.listen(3000, () => console.log("Multi-Chain Payment Gateway Running on Port 3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Multi-Chain Payment Gateway Running on Port ${PORT}`));
